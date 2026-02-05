@@ -8,7 +8,7 @@ import {
   StyleSheet,
   Dimensions,
 } from 'react-native';
-import { Star, Bookmark, BookmarkCheck } from 'lucide-react-native';
+import { Star, Bookmark, BookmarkCheck, ChevronLeft } from 'lucide-react-native';
 import LetterboxdScoreDistribution from '../components/LetterboxdScoreDistribution';
 import TVSeriesGraph from '../components/TVSeriesGraph';
 
@@ -36,9 +36,10 @@ interface MediaData {
 
 interface MediaDetailScreenProps {
   mediaData: MediaData;
+  onBack: () => void;
 }
 
-const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({ mediaData }) => {
+const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({ mediaData, onBack }) => {
   const [activeReviewTab, setActiveReviewTab] = useState<'imdb' | 'letterboxd'>('imdb');
   const [isWatchlisted, setIsWatchlisted] = useState(false);
 
@@ -48,6 +49,13 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({ mediaData }) => {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={onBack}
+        activeOpacity={0.7}
+      >
+        <ChevronLeft size={28} color="#FFFFFF" />
+      </TouchableOpacity>
       {/* Unified Header */}
       <View style={styles.header}>
         <Image
@@ -197,7 +205,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     padding: 16,
-    paddingTop: 60,
+    paddingTop: 100,
   },
   poster: {
     width: 120,
@@ -337,6 +345,15 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: '#6B7280',
     fontSize: 14,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50, // Adjust based on your status bar height
+    left: 16,
+    zIndex: 10,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 4,
   },
 });
 
