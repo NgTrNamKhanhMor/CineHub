@@ -9,8 +9,8 @@ import {
   Dimensions,
 } from 'react-native';
 import { Star, Bookmark, BookmarkCheck } from 'lucide-react-native';
-import LetterboxdScoreDistribution from './components/LetterboxdScoreDistribution';
-import TVSeriesGraph from './components/TVSeriesGraph';
+import LetterboxdScoreDistribution from '../components/LetterboxdScoreDistribution';
+import TVSeriesGraph from '../components/TVSeriesGraph';
 
 const { width } = Dimensions.get('window');
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { SafeAreaView, StatusBar } from 'react-native';
-import MediaDetailScreen from './MediaDetailScreen';
+import MediaDetailScreen from './src/screens/MediaDetailScreen';
 
 // Example Movie Data
 const movieData = {
