@@ -1,5 +1,5 @@
 import { getLetterboxdData, LetterboxdData } from "./letterboxd.service";
-import { getIMDbRating } from "./omdb.service";
+import { getIMDbDistribution, getIMDbRating } from "./omdb.service";
 import { getAllTVEpisodes, getMovieDetails, getMovieExternalIds, getPosterUrl, getTVExternalIds, getTVShowDetails, searchMedia, TMDbEpisode } from "./tmdb.service";
 
 
@@ -14,6 +14,7 @@ export interface MediaData {
     imdb: number;
     letterboxd: number;
   };
+   imdbWeights: number[];
   letterboxdWeights: number[];
   tvSeriesData?: Array<{
     seasonNumber: number;
@@ -38,8 +39,10 @@ export const fetchMovieData = async (tmdbId: number): Promise<MediaData> => {
     // Fetch IMDb rating (from OMDb)
     console.log('Fetching IMDb rating...');
     let imdbRating = 0;
+    let imdbWeights = [0,0,0,0,0,0,0,0,0,0];
     if (imdbId) {
       imdbRating = await getIMDbRating(imdbId);
+      imdbWeights = await getIMDbDistribution(imdbId);
     }
     
     // Fallback to TMDb rating if OMDb fails
@@ -71,6 +74,7 @@ export const fetchMovieData = async (tmdbId: number): Promise<MediaData> => {
         imdb: imdbRating,
         letterboxd: letterboxdData?.rating || 0,
       },
+      imdbWeights: imdbWeights,
       letterboxdWeights: letterboxdData?.distribution || [],
     };
     
@@ -97,8 +101,10 @@ export const fetchTVShowData = async (tmdbId: number): Promise<MediaData> => {
     // Fetch IMDb rating
     console.log('Fetching IMDb rating...');
     let imdbRating = 0;
+    let imdbWeights = [0,0,0,0,0,0,0,0,0,0];
     if (imdbId) {
       imdbRating = await getIMDbRating(imdbId);
+      imdbWeights = await getIMDbDistribution(imdbId);
     }
     
     // Fallback to TMDb rating
@@ -131,6 +137,7 @@ export const fetchTVShowData = async (tmdbId: number): Promise<MediaData> => {
         imdb: imdbRating,
         letterboxd: 0, // Letterboxd doesn't rate TV shows
       },
+      imdbWeights: imdbWeights,
       letterboxdWeights: [],
       tvSeriesData,
     };

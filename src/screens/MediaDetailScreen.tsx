@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -11,28 +11,12 @@ import {
 import { Star, Bookmark, BookmarkCheck, ChevronLeft } from 'lucide-react-native';
 import LetterboxdScoreDistribution from '../components/LetterboxdScoreDistribution';
 import TVSeriesGraph from '../components/TVSeriesGraph';
+import VerticalScoreDistribution from '../components/VerticalScoreDistribution';
+import { MediaData } from '../../service/media.service';
 
 const { width } = Dimensions.get('window');
 
-interface MediaData {
-  title: string;
-  summary: string;
-  releaseDate: string;
-  runtime: number;
-  type: 'movie' | 'tv';
-  posterUrl: string;
-  scores: {
-    imdb: number;
-    letterboxd: number;
-  };
-  letterboxdWeights: number[];
-  tvSeriesData?: Array<{
-    seasonNumber: number;
-    episodeNumber: number;
-    title: string;
-    rating: number;
-  }>;
-}
+
 
 interface MediaDetailScreenProps {
   mediaData: MediaData;
@@ -41,11 +25,20 @@ interface MediaDetailScreenProps {
 
 const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({ mediaData, onBack }) => {
   const [activeReviewTab, setActiveReviewTab] = useState<'imdb' | 'letterboxd'>('imdb');
+  const [activeChartTab, setActiveChartTab] = useState<'letterboxd' | 'imdb'>(
+  mediaData.type === 'tv' ? 'imdb' : 'letterboxd'
+);
   const [isWatchlisted, setIsWatchlisted] = useState(false);
 
   const toggleWatchlist = () => {
     setIsWatchlisted(!isWatchlisted);
   };
+
+  useEffect(() => {
+  if (mediaData.type === 'tv') {
+    setActiveChartTab('imdb');
+  }
+}, [mediaData.type]);
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -123,15 +116,42 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({ mediaData, onBack
       </View>
 
       {/* Letterboxd Score Distribution - Only for Movies */}
-      {mediaData.type === 'movie' && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Rating Distribution</Text>
-          <Text style={styles.sectionSubtitle}>
-            {mediaData.letterboxdWeights.reduce((a, b) => a + b, 0).toLocaleString()} fans
-          </Text>
-          <LetterboxdScoreDistribution weights={mediaData.letterboxdWeights} />
-        </View>
-      )}
+      <View style={styles.section}>
+      <View style={styles.sectionHeaderRow}>
+        <Text style={styles.sectionTitle}>Rating Distribution</Text>
+        
+        {/* 3. Only show the switcher if it is a MOVIE */}
+        {mediaData.type === 'movie' && (
+          <View style={styles.miniSegmentedControl}>
+            <TouchableOpacity
+              style={[styles.miniSegmentButton, activeChartTab === 'letterboxd' && styles.miniSegmentButtonActive]}
+              onPress={() => setActiveChartTab('letterboxd')}
+            >
+              <Text style={[styles.miniSegmentText, activeChartTab === 'letterboxd' && styles.miniSegmentTextActive]}>LB</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.miniSegmentButton, activeChartTab === 'imdb' && styles.miniSegmentButtonActive]}
+              onPress={() => setActiveChartTab('imdb')}
+            >
+              <Text style={[styles.miniSegmentText, activeChartTab === 'imdb' && styles.miniSegmentTextActive]}>IMDb</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      {/* 4. Subtitle logic based on the active tab */}
+      <Text style={styles.sectionSubtitle}>
+        {activeChartTab === 'letterboxd' 
+          ? `${mediaData.letterboxdWeights.reduce((a, b) => a + b, 0).toLocaleString()} fans`
+          : `IMDb community rating distribution`}
+      </Text>
+
+      {/* 5. Pass the correct weights to the vertical chart */}
+      <VerticalScoreDistribution 
+        type={activeChartTab} 
+        data={activeChartTab === 'letterboxd' ? mediaData.letterboxdWeights : (mediaData.imdbWeights || [])} 
+      />
+    </View>
 
       {/* TV Series Graph - Only for TV Shows */}
       {mediaData.type === 'tv' && mediaData.tvSeriesData && (
@@ -354,6 +374,34 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 20,
     padding: 4,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  miniSegmentedControl: {
+    flexDirection: 'row',
+    backgroundColor: '#1F1F1F',
+    borderRadius: 6,
+    padding: 2,
+  },
+  miniSegmentButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  miniSegmentButtonActive: {
+    backgroundColor: '#374151',
+  },
+  miniSegmentText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#6B7280',
+  },
+  miniSegmentTextActive: {
+    color: '#FFFFFF',
   },
 });
 
