@@ -12,7 +12,9 @@ import { Star, Bookmark, BookmarkCheck, ChevronLeft } from 'lucide-react-native'
 import LetterboxdScoreDistribution from '../components/LetterboxdScoreDistribution';
 import TVSeriesGraph from '../components/TVSeriesGraph';
 import VerticalScoreDistribution from '../components/VerticalScoreDistribution';
-import { MediaData } from '../../service/media.service';
+import TVSeriesGrid from '../components/TVSeriesGrid';
+import { formatRuntime } from '../../ultis/helper';
+import { MediaData } from '../../types';
 
 const { width } = Dimensions.get('window');
 
@@ -28,12 +30,16 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({ mediaData, onBack
   const [activeChartTab, setActiveChartTab] = useState<'letterboxd' | 'imdb'>(
   mediaData.type === 'tv' ? 'imdb' : 'letterboxd'
 );
+const [showHours, setShowHours] = useState(true);
+const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
   const [isWatchlisted, setIsWatchlisted] = useState(false);
 
   const toggleWatchlist = () => {
     setIsWatchlisted(!isWatchlisted);
   };
-
+const toggleRuntime = () => {
+  setShowHours(!showHours);
+};
   useEffect(() => {
   if (mediaData.type === 'tv') {
     setActiveChartTab('imdb');
@@ -42,6 +48,23 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({ mediaData, onBack
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.bannerContainer}>
+      <Image
+        source={{ uri: mediaData.backdropUrl }}
+        style={styles.bannerImage}
+        resizeMode="cover"
+      />
+      
+      {/* Dark overlay for better button/text visibility */}
+      <View style={styles.bannerOverlay} />
+      
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={onBack}
+      >
+        <ChevronLeft size={28} color="#FFFFFF" />
+      </TouchableOpacity>
+    </View>
       <TouchableOpacity 
         style={styles.backButton} 
         onPress={onBack}
@@ -61,36 +84,56 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({ mediaData, onBack
           <Text style={styles.title} numberOfLines={2}>
             {mediaData.title}
           </Text>
-          
-          <Text style={styles.metadata}>
-            {mediaData.releaseDate} • {mediaData.runtime} min
+          {mediaData.director && (
+          <Text style={styles.directorText}>
+            Directed by <Text style={styles.directorName}>{mediaData.director}</Text>
           </Text>
+        )}
+          
+        <View style={styles.metadataContainer}>
+          <Text style={styles.metadata}>
+            {mediaData.releaseDate}
+          </Text>
+          
+          <Text style={styles.metadataSeparator}> • </Text>
 
-          {/* Scores Section */}
+          {/* The Runtime is interactive */}
+          <TouchableOpacity onPress={toggleRuntime} activeOpacity={0.6}>
+            <Text style={[styles.metadata, styles.metadataInteractive]}>
+              {formatRuntime(mediaData.runtime, showHours)}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
           <View style={styles.scoresContainer}>
-            {/* IMDb Score */}
-            <View style={styles.scoreBox}>
-              <View style={styles.scoreHeader}>
-                <Star size={16} color="#F5C518" fill="#F5C518" />
-                <Text style={styles.scoreLabel}>IMDb</Text>
-              </View>
+          {/* IMDb Score */}
+          <View style={styles.scoreBox}>
+            <View style={styles.scoreHeader}>
+              <Star size={16} color="#F5C518" fill="#F5C518" />
+              <Text style={styles.scoreLabel}>IMDb</Text>
+            </View>
+            {/* Wrap value and max in a row container */}
+            <View style={styles.scoreValueContainer}>
               <Text style={styles.scoreValue}>{mediaData.scores.imdb.toFixed(1)}</Text>
               <Text style={styles.scoreMax}>/10</Text>
             </View>
+          </View>
 
-            {/* Letterboxd Score - Only for Movies */}
-            {mediaData.type === 'movie' && (
-              <View style={styles.scoreBox}>
-                <View style={styles.scoreHeader}>
-                  <View style={styles.letterboxdDot} />
-                  <Text style={styles.scoreLabel}>Letterboxd</Text>
-                </View>
+          {/* Letterboxd Score - Only for Movies */}
+          {mediaData.type === 'movie' && (
+            <View style={styles.scoreBox}>
+              <View style={styles.scoreHeader}>
+                <View style={styles.letterboxdDot} />
+                <Text style={styles.scoreLabel}>Letterboxd</Text>
+              </View>
+              {/* Same row container here */}
+              <View style={styles.scoreValueContainer}>
                 <Text style={styles.scoreValue}>{mediaData.scores.letterboxd.toFixed(1)}</Text>
                 <Text style={styles.scoreMax}>/5.0</Text>
               </View>
-            )}
-          </View>
-
+            </View>
+          )}
+        </View>
           {/* Watchlist Toggle */}
           <TouchableOpacity
             style={[styles.watchlistButton, isWatchlisted && styles.watchlistButtonActive]}
@@ -110,10 +153,28 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({ mediaData, onBack
       </View>
 
       {/* Summary */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Synopsis</Text>
-        <Text style={styles.summaryText}>{mediaData.summary}</Text>
-      </View>
+     <View style={styles.section}>
+  
+  <TouchableOpacity 
+    onPress={() => setIsSummaryExpanded(!isSummaryExpanded)}
+    activeOpacity={0.7}
+  >
+    <Text 
+      style={styles.summaryText}
+      numberOfLines={isSummaryExpanded ? undefined : 4} 
+    >
+      {mediaData.summary}
+    </Text>
+    
+    {!isSummaryExpanded && mediaData.summary.length > 150 && (
+      <Text style={styles.seeMoreText}>See More</Text>
+    )}
+    
+    {isSummaryExpanded && (
+      <Text style={styles.seeMoreText}>See Less</Text>
+    )}
+  </TouchableOpacity>
+</View>
 
       {/* Letterboxd Score Distribution - Only for Movies */}
       <View style={styles.section}>
@@ -158,7 +219,7 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({ mediaData, onBack
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Episode Ratings</Text>
           <Text style={styles.sectionSubtitle}>Rating trend across all episodes</Text>
-          <TVSeriesGraph episodes={mediaData.tvSeriesData} />
+         <TVSeriesGrid episodes={mediaData.tvSeriesData} />
         </View>
       )}
 
@@ -225,18 +286,29 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     padding: 16,
-    paddingTop: 100,
+    paddingTop: 50,
+    marginTop: -60,
   },
   poster: {
-    width: 120,
-    height: 180,
+    width: 130,
+    height: 190,
     borderRadius: 8,
     backgroundColor: '#1F1F1F',
+    borderColor: '#000',
   },
   headerInfo: {
     flex: 1,
     marginLeft: 16,
     justifyContent: 'flex-start',
+  },
+  directorText: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginBottom: 8,
+  },
+  directorName: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   title: {
     fontSize: 24,
@@ -248,6 +320,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9CA3AF',
     marginBottom: 16,
+    paddingVertical: 4,
   },
   scoresContainer: {
     flexDirection: 'row',
@@ -285,7 +358,7 @@ const styles = StyleSheet.create({
   scoreMax: {
     fontSize: 14,
     color: '#6B7280',
-    marginTop: -4,
+    marginLeft: 2,
   },
   watchlistButton: {
     flexDirection: 'row',
@@ -402,6 +475,44 @@ const styles = StyleSheet.create({
   },
   miniSegmentTextActive: {
     color: '#FFFFFF',
+  },
+  scoreValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'baseline', // This aligns the bottom of the text strings
+  },
+  metadataContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  metadataSeparator: {
+    fontSize: 14,
+    color: '#4B5563', // Slightly dimmer color for the bullet
+    paddingBottom: 10
+  },
+  metadataInteractive: {
+    // Optional: make it slightly brighter or underlined to show it's a toggle
+    color: '#D1D5DB', 
+    textDecorationLine: 'underline',
+    textDecorationStyle: 'dotted',
+  },
+  bannerContainer: {
+    width: '100%',
+    height: 250,
+  },
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+  },
+  bannerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)', // Darken the banner slightly
+  },
+  seeMoreText: {
+    color: '#00D400', // Matches your Letterboxd green
+    fontWeight: '600',
+    marginTop: 4,
+    fontSize: 14,
   },
 });
 

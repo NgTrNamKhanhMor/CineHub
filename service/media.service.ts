@@ -1,28 +1,10 @@
+import { MediaData, TMDbEpisode } from "../types";
 import { getLetterboxdData, LetterboxdData } from "./letterboxd.service";
 import { getIMDbDistribution, getIMDbRating } from "./omdb.service";
-import { getAllTVEpisodes, getMovieDetails, getMovieExternalIds, getPosterUrl, getTVExternalIds, getTVShowDetails, searchMedia, TMDbEpisode } from "./tmdb.service";
+import { getAllTVEpisodes, getMovieDetails, getMovieExternalIds, getPosterUrl, getTVExternalIds, getTVShowDetails, searchMedia } from "./tmdb.service";
 
 
-export interface MediaData {
-  title: string;
-  summary: string;
-  releaseDate: string;
-  runtime: number;
-  type: 'movie' | 'tv';
-  posterUrl: string;
-  scores: {
-    imdb: number;
-    letterboxd: number;
-  };
-   imdbWeights: number[];
-  letterboxdWeights: number[];
-  tvSeriesData?: Array<{
-    seasonNumber: number;
-    episodeNumber: number;
-    title: string;
-    rating: number;
-  }>;
-}
+
 
 /**
  * Fetch complete movie data from all sources
@@ -31,7 +13,9 @@ export const fetchMovieData = async (tmdbId: number): Promise<MediaData> => {
   try {
     console.log('Fetching movie data from TMDb...');
     const tmdbData = await getMovieDetails(tmdbId);
-    
+    const director = tmdbData.credits?.crew?.find(
+    (person: any) => person.job === 'Director'
+  )?.name;
     console.log('Fetching external IDs...');
     const externalIds = await getMovieExternalIds(tmdbId);
     const imdbId = externalIds.imdb_id;
@@ -76,6 +60,8 @@ export const fetchMovieData = async (tmdbId: number): Promise<MediaData> => {
       },
       imdbWeights: imdbWeights,
       letterboxdWeights: letterboxdData?.distribution || [],
+      backdropUrl: getPosterUrl(tmdbData.backdrop_path),
+       director: director || 'Unknown Director',
     };
     
     console.log('Movie data fetched successfully!');
@@ -137,6 +123,7 @@ export const fetchTVShowData = async (tmdbId: number): Promise<MediaData> => {
         imdb: imdbRating,
         letterboxd: 0, // Letterboxd doesn't rate TV shows
       },
+      backdropUrl: getPosterUrl(tmdbData.backdrop_path),
       imdbWeights: imdbWeights,
       letterboxdWeights: [],
       tvSeriesData,

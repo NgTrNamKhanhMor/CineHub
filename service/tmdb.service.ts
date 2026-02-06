@@ -2,41 +2,14 @@
 // TMDb API Service - Primary data source for movies and TV shows
 
 import { API_CONFIG } from "../config/env";
+import { TMDbEpisode, TMDbMovie, TMDbTVShow } from "../types";
 
 
 const TMDB_API_KEY = API_CONFIG.TMDB_API_KEY;
 const TMDB_BASE_URL = API_CONFIG.TMDB_BASE_URL;
 const TMDB_IMAGE_BASE_URL = API_CONFIG.TMDB_IMAGE_BASE_URL;
 
-export interface TMDbMovie {
-  id: number;
-  title: string;
-  overview: string;
-  release_date: string;
-  runtime: number;
-  poster_path: string;
-  vote_average: number;
-  imdb_id?: string;
-}
 
-export interface TMDbTVShow {
-  id: number;
-  name: string;
-  overview: string;
-  first_air_date: string;
-  episode_run_time: number[];
-  poster_path: string;
-  vote_average: number;
-  number_of_seasons: number;
-}
-
-export interface TMDbEpisode {
-  season_number: number;
-  episode_number: number;
-  name: string;
-  vote_average: number;
-  air_date: string;
-}
 
 /**
  * Search for movies or TV shows
@@ -69,7 +42,7 @@ export const searchMedia = async (
 export const getMovieDetails = async (movieId: number): Promise<TMDbMovie> => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=en-US`
+      `${TMDB_BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=credits`
     );
     
     if (!response.ok) {
@@ -90,7 +63,7 @@ export const getMovieDetails = async (movieId: number): Promise<TMDbMovie> => {
 export const getTVShowDetails = async (tvId: number): Promise<TMDbTVShow> => {
   try {
     const response = await fetch(
-      `${TMDB_BASE_URL}/tv/${tvId}?api_key=${TMDB_API_KEY}&language=en-US`
+      `${TMDB_BASE_URL}/tv/${tvId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=credits`
     );
     
     if (!response.ok) {

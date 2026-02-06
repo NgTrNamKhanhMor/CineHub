@@ -2,7 +2,8 @@
 // Custom React hook for fetching media data with loading and error states
 
 import { useState, useEffect } from 'react';
-import { fetchMediaData, MediaData } from '../service/media.service';
+import { fetchMediaData } from '../service/media.service';
+import { MediaData } from '../types';
 
 export interface UseMediaDataReturn {
   data: MediaData | null;
