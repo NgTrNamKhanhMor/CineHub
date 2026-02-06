@@ -58,6 +58,7 @@ export const fetchMovieData = async (tmdbId: number): Promise<MediaData> => {
         tmdbData.release_date?.split('-')[0]
       );
     }
+    console.log(letterboxdData)
     
     // Construct MediaData object
     const mediaData: MediaData = {

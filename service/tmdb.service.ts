@@ -49,6 +49,7 @@ export const searchMedia = async (
     const response = await fetch(
       `${TMDB_BASE_URL}/search/${type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1`
     );
+    console.log(response)
     
     if (!response.ok) {
       throw new Error(`TMDb API error: ${response.status}`);
