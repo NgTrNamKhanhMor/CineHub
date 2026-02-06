@@ -59,42 +59,36 @@ export const searchLetterboxd = async (movieTitle: string, year?: string): Promi
  */
 export const getLetterboxdRating = async (movieSlug: string): Promise<LetterboxdData | null> => {
   try {
-    // In a real implementation, you would:
-    // 1. Fetch https://letterboxd.com/film/{movieSlug}/
-    // 2. Parse the HTML for rating data
-    // 3. Look for elements like:
-    //    - .average-rating for the average score
-    //    - .rating-histogram for distribution
-    //    - .film-stats for watch count
-    
-    // For now, return mock data
-    console.warn('Letterboxd scraping not implemented - using mock data');
-    
-    // Generate realistic mock distribution
-    const mockDistribution = [
-      Math.floor(Math.random() * 500),   // 0.5 stars
-      Math.floor(Math.random() * 1000),  // 1.0 stars
-      Math.floor(Math.random() * 2000),  // 1.5 stars
-      Math.floor(Math.random() * 3000),  // 2.0 stars
-      Math.floor(Math.random() * 4000),  // 2.5 stars
-      Math.floor(Math.random() * 5000),  // 3.0 stars
-      Math.floor(Math.random() * 6000),  // 3.5 stars
-      Math.floor(Math.random() * 5000),  // 4.0 stars
-      Math.floor(Math.random() * 3000),  // 4.5 stars
-      Math.floor(Math.random() * 1000),  // 5.0 stars
-    ];
-    
+    // 1. Fetch the actual movie page
+    const response = await fetch(`https://letterboxd.com/film/${movieSlug}/`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      }
+    });
+
+    if (!response.ok) throw new Error('Could not reach Letterboxd');
+
+    const html = await response.text();
+
+    // 2. Extract the rating using Regex (Letterboxd hides it in JSON-LD)
+    // We look for "ratingValue": 4.2
+    const ratingMatch = html.match(/"ratingValue":\s*([\d.]+)/);
+    const rating = ratingMatch ? parseFloat(ratingMatch[1]) : 0;
+
+    // 3. Extract the watch count (usually in a script tag or meta tag)
+    const watchMatch = html.match(/"checkinCount":\s*(\d+)/);
+    const watchCount = watchMatch ? parseInt(watchMatch[1], 10) : 0;
+
     return {
-      rating: 3.8 + Math.random() * 0.8, // Random rating between 3.8-4.6
-      distribution: mockDistribution,
-      watchCount: mockDistribution.reduce((a, b) => a + b, 0),
+      rating: rating,
+      distribution: [0,0,0,0,0,0,0,0,0,0], // Histogram is harder to scrape without a DOM parser
+      watchCount: watchCount,
     };
   } catch (error) {
-    console.error('Error fetching Letterboxd data:', error);
+    console.error('Real Scraping Error:', error);
     return null;
   }
 };
-
 /**
  * ALTERNATIVE: Use Letterboxd community API proxy
  * Some developers have created unofficial APIs that scrape Letterboxd
