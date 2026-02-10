@@ -1,10 +1,9 @@
 export const API_CONFIG = {
-  TMDB_API_KEY: '26a47eebf25a7e5c23001af0eb4e4f0b',
-  OMDB_API_KEY: '866bbe93',
-  TMDB_BASE_URL: 'https://api.themoviedb.org/3',
-  OMDB_BASE_URL: 'https://www.omdbapi.com',
-  TMDB_IMAGE_BASE_URL: 'https://image.tmdb.org/t/p/w',
-  
+  TMDB_API_KEY: process.env.TMDB_API_KEY || '',
+  OMDB_API_KEY: process.env.OMDB_API_KEY || '',
+  TMDB_BASE_URL: process.env.TMDB_BASE_URL || '',
+  OMDB_BASE_URL: process.env.OMDB_BASE_URL || '',
+  TMDB_IMAGE_BASE_URL: process.env.TMDB_IMAGE_BASE_URL || '',
   ENABLE_OMDB: true,       
   ENABLE_LETTERBOXD: true,
 };
