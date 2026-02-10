@@ -2,7 +2,7 @@
 // TMDb API Service - Primary data source for movies and TV shows
 
 import { API_CONFIG } from "../config/env";
-import { TMDbEpisode, TMDbMovie, TMDbTVShow } from "../types";
+import { PersonCombinedCredits, PersonDetails, TMDbEpisode, TMDbMovie, TMDbTVShow } from "../types";
 
 
 const TMDB_API_KEY = API_CONFIG.TMDB_API_KEY;
@@ -56,7 +56,18 @@ export const getMovieDetails = async (movieId: number): Promise<TMDbMovie> => {
     throw error;
   }
 };
-
+export const getMediaCredits = async (id: number, type: 'movie' | 'tv') => {
+  const url = `${TMDB_BASE_URL}/${type}/${id}/credits?api_key=${TMDB_API_KEY}`;
+  
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data.cast.slice(0, 15); 
+  } catch (error) {
+    console.error('Credits fetch error:', error);
+    return [];
+  }
+};
 /**
  * Get detailed TV show information
  */
@@ -133,11 +144,11 @@ export const getAllTVEpisodes = async (
 /**
  * Get full poster URL
  */
-export const getPosterUrl = (posterPath: string | null): string => {
+export const getPosterUrl = (posterPath: string | null, baseDimension: number, subDimension?: number): string => {
   if (!posterPath) {
-    return 'https://via.placeholder.com/500x750?text=No+Poster';
+    return `https://via.placeholder.com/${baseDimension}x${subDimension ?? baseDimension}?text=No+Poster`;
   }
-  return `${TMDB_IMAGE_BASE_URL}${posterPath}`;
+  return `${TMDB_IMAGE_BASE_URL}${baseDimension}${posterPath}`;
 };
 
 /**
@@ -173,6 +184,28 @@ export const getTVExternalIds = async (tvId: number): Promise<{ imdb_id: string 
     return await response.json();
   } catch (error) {
     console.error('Error fetching TV external IDs:', error);
+    throw error;
+  }
+};
+
+export const getPersonDetails = async (personId: number): Promise<PersonDetails> => {
+  try {
+  const url = `${TMDB_BASE_URL}/person/${personId}?api_key=${TMDB_API_KEY}`;
+  const response = await fetch(url);
+  return response.json();
+  } catch (error) {
+    console.error('Error fetching person details:', error);
+    throw error;
+  }
+};
+
+export const getPersonCredits = async (personId: number): Promise<PersonCombinedCredits> => {
+  try {
+  const url = `${TMDB_BASE_URL}/person/${personId}/combined_credits?api_key=${TMDB_API_KEY}`;
+  const response = await fetch(url);
+  return response.json();
+  } catch (error) {
+    console.error('Error fetching person credits:', error);
     throw error;
   }
 };

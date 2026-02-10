@@ -3,7 +3,7 @@ export const API_CONFIG = {
   OMDB_API_KEY: '866bbe93',
   TMDB_BASE_URL: 'https://api.themoviedb.org/3',
   OMDB_BASE_URL: 'https://www.omdbapi.com',
-  TMDB_IMAGE_BASE_URL: 'https://image.tmdb.org/t/p/w500',
+  TMDB_IMAGE_BASE_URL: 'https://image.tmdb.org/t/p/w',
   
   ENABLE_OMDB: true,       
   ENABLE_LETTERBOXD: true,

@@ -38,36 +38,45 @@ export const getIMDbRating = async (imdbId: string): Promise<number> => {
     return 0;
   }
 };
-// Add this helper function to your omdb.service.ts or a new imdb.service.ts
 export const getIMDbDistribution = async (imdbId: string): Promise<number[]> => {
   try {
-    // We fetch the 'ratings' subpage of the movie
-    const response = await fetch(`https://www.imdb.com/title/${imdbId}/ratings/`, {
+    const url = `https://www.imdb.com/title/${imdbId}/ratings/`;
+    
+    const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
       }
     });
+
     const html = await response.text();
 
-    // IMDb hides the distribution in a JSON-LD or in the bar chart meta tags
-    // This regex finds the counts for stars 10 down to 1
-    const regex = /"ratingCount":(\d+),"ratingValue":(\d+)/g;
-    let match;
-    const distribution = new Array(10).fill(0);
+    const scriptSelector = /<script id="__NEXT_DATA__" type="application\/json">(.*?)<\/script>/s;
+    const jsonMatch = html.match(scriptSelector);
 
-    while ((match = regex.exec(html)) !== null) {
-      const count = parseInt(match[1], 10);
-      const starValue = parseInt(match[2], 10);
-      // Map star 1-10 to array index 0-9
-      if (starValue >= 1 && starValue <= 10) {
-        distribution[starValue - 1] = count;
-      }
+    if (!jsonMatch) {
+      console.warn("IMDb: __NEXT_DATA__ not found. Likely blocked by bot protection.");
+      return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     }
 
-    // If scraping fails, return a neutral fallback
-    return distribution.every(v => v === 0) ? [5, 10, 20, 40, 80, 100, 70, 30, 10, 5] : distribution;
+    const fullData = JSON.parse(jsonMatch[1]);
+
+    const rawValues = fullData.props.pageProps.contentData.histogramData.histogramValues;
+
+    const distribution = new Array(10).fill(0);
+    
+    rawValues.forEach((item: { rating: number; count: number }) => {
+      if (item.rating >= 1 && item.rating <= 10) {
+        distribution[item.rating - 1] = item.count;
+      }
+    });
+
+    return distribution;
+
   } catch (error) {
-    console.error('Error scraping IMDb distribution:', error);
+    console.error('Critical Error scraping IMDb:', error);
     return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   }
 };

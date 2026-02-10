@@ -128,8 +128,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   headerCell: {
-    width: 45,
-    alignItems: 'center',
+    width: 45,           
+    marginHorizontal: 2, 
+    alignItems: "center",
     marginBottom: 8,
   },
   cell: {
