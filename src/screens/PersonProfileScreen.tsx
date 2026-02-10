@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Animated,
 } from "react-native";
 import { useActorData } from "../hooks/useActorData";
 import { getPosterUrl } from "../service/tmdb.service";
 import MovieGrid from "../components/MovieGrid";
+import MainLayout from "../wrapper/MainLayout";
 
 interface Tab {
   id: string;
@@ -21,6 +23,8 @@ interface Tab {
 
 export default function PersonProfileScreen({ route, navigation }: any) {
   const { personId } = route.params;
+  const scrollY = useRef(new Animated.Value(0)).current;
+
   const { data: details, loading } = useActorData(personId);
   const [activeTab, setActiveTab] = useState<string>("bio");
 
@@ -60,63 +64,67 @@ export default function PersonProfileScreen({ route, navigation }: any) {
     navigation.navigate("MediaDetail", { mediaId: id, mediaType: type });
   };
 
+  const onBack = () => navigation.goBack();
+
   if (loading) return <ActivityIndicator color="#00D400" style={{ flex: 1 }} />;
   if (!details) return <Text>Error loading profile</Text>;
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Image
-          source={{ uri: getPosterUrl(details.details.profile_path, 500) }}
-          style={styles.profilePic}
-        />
-        <Text style={styles.name}>{details.details.name}</Text>
-        <Text style={styles.subtext}>{details.details.place_of_birth}</Text>
-      </View>
-
-      {/* Dynamic Tab Bar */}
-      <View style={{ backgroundColor: "#000" }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabBarScroll}
-        >
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              onPress={() => setActiveTab(tab.id)}
-              style={[styles.tab, activeTab === tab.id && styles.activeTab]}
-            >
-              <Text
-                style={[
-                  styles.tabLabel,
-                  activeTab === tab.id && styles.activeTabLabel,
-                ]}
-              >
-                {tab.label.toUpperCase()}
-                {tab.count > 0 && ` (${tab.count})`}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      <View style={styles.content}>
-        {activeTab === "bio" ? (
-          <Text style={styles.bioText}>
-            {details.details.biography || "No biography available."}
-          </Text>
-        ) : (
-          <MovieGrid
-            data={tabs.find((t) => t.id === activeTab)?.data || []}
-            onPressMedia={handleMediaPress}
+    <MainLayout title={details.details.name} headerProps={{ onBack, scrollY }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Image
+            source={{ uri: getPosterUrl(details.details.profile_path, 500) }}
+            style={styles.profilePic}
           />
-        )}
+          <Text style={styles.name}>{details.details.name}</Text>
+          <Text style={styles.subtext}>{details.details.place_of_birth}</Text>
+        </View>
+
+        {/* Dynamic Tab Bar */}
+        <View style={{ backgroundColor: "#000" }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.tabBarScroll}
+          >
+            {tabs.map((tab) => (
+              <TouchableOpacity
+                key={tab.id}
+                onPress={() => setActiveTab(tab.id)}
+                style={[styles.tab, activeTab === tab.id && styles.activeTab]}
+              >
+                <Text
+                  style={[
+                    styles.tabLabel,
+                    activeTab === tab.id && styles.activeTabLabel,
+                  ]}
+                >
+                  {tab.label.toUpperCase()}
+                  {tab.count > 0 && ` (${tab.count})`}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.content}>
+          {activeTab === "bio" ? (
+            <Text style={styles.bioText}>
+              {details.details.biography || "No biography available."}
+            </Text>
+          ) : (
+            <MovieGrid
+              data={tabs.find((t) => t.id === activeTab)?.data || []}
+              onPressMedia={handleMediaPress}
+            />
+          )}
+        </View>
       </View>
-    </ScrollView>
+    </MainLayout>
   );
 }
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000", marginTop: 40 },
+  container: { flex: 1, backgroundColor: "#000", marginTop: 80 },
   header: { alignItems: "center", padding: 24 },
   tabBarContainer: {
     borderBottomWidth: 1,

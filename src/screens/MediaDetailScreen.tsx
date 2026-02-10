@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Animated,
 } from "react-native";
 import {
   Star,
   Bookmark,
   BookmarkCheck,
-  ChevronLeft,
   User,
   StarHalf,
 } from "lucide-react-native";
@@ -24,6 +24,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { getPosterUrl } from "../service/tmdb.service";
 import { RootStackParamList } from "../types/props";
 import { LinearGradient } from "expo-linear-gradient";
+import MainLayout from "../wrapper/MainLayout";
 interface MediaDetailScreenProps {
   mediaData: MediaData;
   myLetterboxdStats: { rating: number | null; inWatchlist: boolean };
@@ -35,6 +36,7 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({
   myLetterboxdStats,
   onBack,
 }) => {
+  const scrollY = useRef(new Animated.Value(0)).current;
   const [activeReviewTab, setActiveReviewTab] = useState<"imdb" | "letterboxd">(
     "imdb",
   );
@@ -65,7 +67,7 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({
   }, [mediaData.type]);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <MainLayout title={mediaData.title} headerProps={{ onBack, scrollY }}>
       <View style={styles.bannerContainer}>
         <Image
           source={{ uri: mediaData.backdropUrl }}
@@ -76,18 +78,8 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({
           colors={["transparent", "rgba(0,0,0,0.5)", "#000000"]}
           style={styles.gradientOverlay}
         />
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <ChevronLeft size={28} color="#FFFFFF" />
-        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={onBack}
-        activeOpacity={0.7}
-      >
-        <ChevronLeft size={28} color="#FFFFFF" />
-      </TouchableOpacity>
-      {/* Unified Header */}
+      {/* Unified Header (poster + meta) */}
       <View style={styles.header}>
         <View style={styles.posterContainer}>
           <Image
@@ -406,15 +398,11 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({
           </Text>
         </View>
       </View>
-    </ScrollView>
+    </MainLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000000",
-  },
   header: {
     flexDirection: "row",
     paddingHorizontal: 16,
