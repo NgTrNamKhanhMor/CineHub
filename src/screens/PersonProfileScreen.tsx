@@ -8,8 +8,8 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import { useActorData } from "../../hooks/useActorData";
-import { getPosterUrl } from "../../service/tmdb.service";
+import { useActorData } from "../hooks/useActorData";
+import { getPosterUrl } from "../service/tmdb.service";
 import MovieGrid from "../components/MovieGrid";
 
 interface Tab {
@@ -144,16 +144,26 @@ const styles = StyleSheet.create({
     borderBottomColor: "#1F1F1F",
     marginBottom: 16,
   },
-  tab: { 
-    paddingVertical: 14, 
+  tab: {
+    paddingVertical: 14,
     paddingHorizontal: 16,
     marginRight: 8,
-    alignItems: "center" 
+    alignItems: "center",
   },
   activeTab: { borderBottomWidth: 3, borderBottomColor: "#00D400" },
-  tabLabel: { color: "#6B7280", fontWeight: "bold", fontSize: 12, letterSpacing: 1 },
+  tabLabel: {
+    color: "#6B7280",
+    fontWeight: "bold",
+    fontSize: 12,
+    letterSpacing: 1,
+  },
   activeTabLabel: { color: "#fff" },
 
   content: { paddingHorizontal: 16 },
-  bioText: { color: "#D1D5DB", lineHeight: 22, fontSize: 16, marginVertical: 20},
+  bioText: {
+    color: "#D1D5DB",
+    lineHeight: 22,
+    fontSize: 16,
+    marginVertical: 20,
+  },
 });

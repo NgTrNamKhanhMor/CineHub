@@ -17,12 +17,12 @@ import {
 } from "lucide-react-native";
 import VerticalScoreDistribution from "../components/VerticalScoreDistribution";
 import TVSeriesGrid from "../components/TVSeriesGrid";
-import { formatRuntime } from "../../ultis/helper";
-import { MediaData } from "../../types";
+import { formatRuntime } from "../ultis/helper";
+import { MediaData } from "../types";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { getPosterUrl } from "../../service/tmdb.service";
-import { RootStackParamList } from "../../types/props";
+import { getPosterUrl } from "../service/tmdb.service";
+import { RootStackParamList } from "../types/props";
 import { LinearGradient } from "expo-linear-gradient";
 interface MediaDetailScreenProps {
   mediaData: MediaData;

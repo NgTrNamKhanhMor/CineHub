@@ -11,9 +11,9 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Search, Film, Tv } from "lucide-react-native";
-import { searchForMedia } from "../../service/media.service";
+import { searchForMedia } from "../service/media.service";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../../types/props";
+import { RootStackParamList } from "../types/props";
 
 interface SearchResult {
   id: number;
