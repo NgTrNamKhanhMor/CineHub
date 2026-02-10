@@ -12,6 +12,8 @@ import {
   Bookmark,
   BookmarkCheck,
   ChevronLeft,
+  User,
+  StarHalf,
 } from "lucide-react-native";
 import VerticalScoreDistribution from "../components/VerticalScoreDistribution";
 import TVSeriesGrid from "../components/TVSeriesGrid";
@@ -24,11 +26,13 @@ import { RootStackParamList } from "../../types/props";
 import { LinearGradient } from "expo-linear-gradient";
 interface MediaDetailScreenProps {
   mediaData: MediaData;
+  myLetterboxdStats: { rating: number | null; inWatchlist: boolean };
   onBack: () => void;
 }
 
 const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({
   mediaData,
+  myLetterboxdStats,
   onBack,
 }) => {
   const [activeReviewTab, setActiveReviewTab] = useState<"imdb" | "letterboxd">(
@@ -91,19 +95,6 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({
             style={styles.poster}
             resizeMode="cover"
           />
-          <TouchableOpacity
-            style={[
-              styles.watchlistIconBadge,
-              isWatchlisted && styles.watchlistIconBadgeActive,
-            ]}
-            onPress={toggleWatchlist}
-          >
-            {isWatchlisted ? (
-              <BookmarkCheck size={20} color="#FFFFFF" fill="#00D400" />
-            ) : (
-              <Bookmark size={20} color="#FFFFFF" />
-            )}
-          </TouchableOpacity>
         </View>
 
         <View style={styles.headerInfo}>
@@ -159,10 +150,81 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({
                 </View>
               </View>
             )}
+            <TouchableOpacity
+              style={[
+                styles.watchListBox,
+                isWatchlisted && styles.watchlistActiveBox,
+              ]}
+              onPress={toggleWatchlist}
+              activeOpacity={0.7}
+            >
+              <View style={styles.watchListValueContainer}>
+                {isWatchlisted ? (
+                  <BookmarkCheck size={25} color="#00D400" fill="#00D400" />
+                ) : (
+                  <Bookmark size={25} color="#9CA3AF" />
+                )}
+              </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
+      {/* NEW: Personal Activity Section (Letterboxd Style) */}
+      {(myLetterboxdStats.rating || isWatchlisted) && (
+        <View style={styles.personalSection}>
+          <View style={styles.personalContent}>
+            <View style={styles.personalLeft}>
+              <User size={18} color="#00D400" />
+              <Text style={styles.personalText}>Your Activity</Text>
+            </View>
+            <View style={styles.personalRight}>
+              {myLetterboxdStats.rating && (
+                <View style={styles.personalRatingContainer}>
+                  {[...Array(5)].map((_, i) => {
+                    const starNumber = i + 1;
+                    const rating = myLetterboxdStats.rating || 0;
 
+                    console.log(rating >= starNumber - 0.5);
+
+                    if (rating >= starNumber) {
+                      return (
+                        <Star
+                          key={i}
+                          size={16}
+                          color="#00D400"
+                          fill="#00D400"
+                        />
+                      );
+                    } else if (rating >= starNumber - 0.5) {
+                      return (
+                        <StarHalf
+                          key={i}
+                          size={16}
+                          color="#00D400"
+                          fill="#00D400"
+                        />
+                      );
+                    } else {
+                      // Empty Star
+                      return (
+                        <Star
+                          key={i}
+                          size={16}
+                          color="#374151"
+                          fill="transparent"
+                        />
+                      );
+                    }
+                  })}
+                  <Text style={styles.personalRatingValue}>
+                    {myLetterboxdStats.rating?.toFixed(1)}
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </View>
+      )}
       {/* Summary */}
       <View style={styles.section}>
         <TouchableOpacity
@@ -416,17 +478,32 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 0, // Let the Spacer handle the gap
   },
-  scoreBox: {
-    backgroundColor: "#1A1A1A", // Slightly darker for "premium" look
+  watchListBox: {
+    backgroundColor: "#1A1A1A",
     borderRadius: 10,
-    padding: 12,
+    borderWidth: 1,
+    borderColor: "#2A2A2A",
+    height: 60,
+    width: 65,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scoreBox: {
+    backgroundColor: "#1A1A1A",
+    borderRadius: 10,
+    padding: 8,
     paddingTop: 20,
     paddingBottom: 15,
     borderWidth: 1,
     borderColor: "#2A2A2A",
     height: 60,
-    width: 75,
+    width: 65,
     justifyContent: "center",
+  },
+  watchlistActiveBox: {
+    borderColor: "#00D400",
+    backgroundColor: "rgba(0, 212, 0, 0.05)",
   },
   scoreHeader: {
     flexDirection: "row",
@@ -446,7 +523,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#00D400",
   },
   scoreValue: {
-    fontSize: 23, // Reduced from 28 to fit better
+    fontSize: 20,
     fontWeight: "bold",
     color: "#FFFFFF",
   },
@@ -576,6 +653,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "baseline",
   },
+  watchListValueContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   metadataContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -649,6 +730,50 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     height: 150,
+  },
+  myScoreBox: { borderColor: "#00D400", backgroundColor: "#00D40010" },
+  personalSection: {
+    backgroundColor: "#111",
+    marginHorizontal: 16,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#1F1F1F",
+  },
+  personalContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  personalLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  personalText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  personalRight: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  personalRatingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    backgroundColor: "rgba(0, 212, 0, 0.1)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  personalRatingValue: {
+    color: "#00D400",
+    fontWeight: "bold",
+    fontSize: 14,
+    marginLeft: 6,
   },
 });
 

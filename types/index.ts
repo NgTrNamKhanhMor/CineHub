@@ -1,4 +1,5 @@
 export interface MediaData {
+  id: number;
   title: string;
   summary: string;
   releaseDate: string;

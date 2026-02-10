@@ -4,12 +4,14 @@
 import { useState, useEffect } from 'react';
 import { fetchMediaData } from '../service/media.service';
 import { MediaData } from '../types';
+import { fetchUserLetterboxdStatus } from '../service/letterboxd.service';
 
 export interface UseMediaDataReturn {
   data: MediaData | null;
   loading: boolean;
   error: string | null;
   refetch: () => void;
+  myLetterboxdStats: { rating: number | null; inWatchlist: boolean };
 }
 
 /**
@@ -21,9 +23,14 @@ export const useMediaData = (
   tmdbId: number | null,
   type: 'movie' | 'tv'
 ): UseMediaDataReturn => {
+  const username = 'El_Almas'
   const [data, setData] = useState<MediaData | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [myLetterboxdStats, setMyLetterboxdStats] = useState<{ rating: number | null, inWatchlist: boolean }>({
+    rating: null,
+    inWatchlist: false
+  });
 
   const fetchData = async () => {
     if (!tmdbId) return;
@@ -34,6 +41,11 @@ export const useMediaData = (
     try {
       const mediaData = await fetchMediaData(tmdbId, type);
       setData(mediaData);
+      if (username && mediaData.id) {
+          // Check personal Letterboxd status
+          const personalStats = await fetchUserLetterboxdStatus(username, mediaData.id);
+          setMyLetterboxdStats(personalStats);
+        }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error in useMediaData:', err);
@@ -50,5 +62,5 @@ export const useMediaData = (
     fetchData();
   };
 
-  return { data, loading, error, refetch };
+  return { data, loading, error, refetch, myLetterboxdStats };
 };

@@ -56,6 +56,7 @@ export const fetchMovieData = async (tmdbId: number): Promise<MediaData> => {
 
     // Construct MediaData object
     const mediaData: MediaData = {
+      id: tmdbData.id,
       title: tmdbData.title,
       summary: tmdbData.overview || "No summary available.",
       releaseDate: tmdbData.release_date?.split("-")[0] || "Unknown",
@@ -125,6 +126,7 @@ export const fetchTVShowData = async (tmdbId: number): Promise<MediaData> => {
 
     // Construct MediaData object
     const mediaData: MediaData = {
+      id: tmdbData.id,
       title: tmdbData.name,
       summary: tmdbData.overview || "No summary available.",
       releaseDate: tmdbData.first_air_date?.split("-")[0] || "Unknown",
@@ -203,3 +205,4 @@ export const getPersonProfile = async (personId: number) => {
     crew: credits.crew,
   };
 };
+

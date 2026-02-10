@@ -7,7 +7,7 @@ import MediaDetailScreen from '../src/screens/MediaDetailScreen';
 
 export default function MediaDetailWrapper({ route, navigation }: any) {
   const { mediaId, mediaType } = route.params;
-  const { data, loading, error, refetch } = useMediaData(mediaId, mediaType);
+  const { data, loading, error, refetch, myLetterboxdStats } = useMediaData(mediaId, mediaType);
 
   if (loading) return <LoadingScreen />;
   if (error) return <ErrorScreen error={error} onRetry={refetch} />;
@@ -17,6 +17,7 @@ export default function MediaDetailWrapper({ route, navigation }: any) {
     <MediaDetailScreen 
       mediaData={data} 
       onBack={() => navigation.goBack()} 
+      myLetterboxdStats={myLetterboxdStats}
     />
   );
 }

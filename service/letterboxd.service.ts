@@ -174,3 +174,52 @@ export const getLetterboxdData = async (
   // Return null if all methods fail
   return null;
 };
+
+export async function fetchUserLetterboxdStatus(username: string, tmdbId: number | string) {
+  try {
+    // 1. Resolve the Letterboxd Slug using the TMDb ID
+    // Letterboxd has a specific endpoint for TMDb IDs
+    const movieResponse = await fetch(`https://letterboxd.com/tmdb/${tmdbId}`, {
+      method: 'GET', // Changed to GET to ensure we get the final URL in RN
+      redirect: 'follow'
+    });
+
+    const finalUrl = movieResponse?.url;
+
+    // Safety check: if the redirect didn't happen or URL is missing
+    if (!finalUrl || !finalUrl.includes('/film/')) {
+      return { rating: null, inWatchlist: false };
+    }
+
+    // Extract slug (e.g., from "https://letterboxd.com/film/inception/" get "inception")
+    const parts = finalUrl.split('/film/');
+    const movieSlug = parts[1]?.split('/')[0];
+
+    if (!movieSlug) return { rating: null, inWatchlist: false };
+
+    // 2. Fetch YOUR personal page for this film
+    const userFilmUrl = `https://letterboxd.com/${username}/film/${movieSlug}/`;
+    const response = await fetch(userFilmUrl);
+    
+    if (response.status === 404) return { rating: null, inWatchlist: false };
+
+    const html = await response.text();
+
+    // 3. Extract Rating (class="rated-9" means 4.5 stars)
+    const ratingMatch = html.match(/rated-(\d+)/);
+    const myRating = ratingMatch ? parseInt(ratingMatch[1], 10) / 2 : null;
+
+    // 4. Extract Watchlist status 
+    // This is hard to get without login, but we can check for "Watched" status
+    const hasWatched = html.includes('viewed-by-user') || !!myRating;
+
+    return { 
+        rating: myRating, 
+        inWatchlist: false 
+    };
+
+  } catch (e) {
+    console.error("Personal Scrape Error:", e);
+    return { rating: null, inWatchlist: false };
+  }
+}
