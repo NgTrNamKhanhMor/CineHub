@@ -9,21 +9,21 @@ import {
   StyleSheet,
   ActivityIndicator,
 } from "react-native";
-import { Search, Film, Tv } from "lucide-react-native";
+import { Search, Film, Tv, User } from "lucide-react-native";
 import { searchForMedia } from "../service/media.service";
 import { useSearchHistory } from "../hooks/useSearchHistory";
 
 interface SearchResult {
   id: number;
   title: string;
-  year: string;
+  year?: string;
   posterUrl: string;
 }
 
 export default function SearchScreen({ navigation }: any) {
   const [query, setQuery] = useState("");
-  const [searchType, setSearchType] = useState<"movie" | "tv">("movie");
-  const { history, addToHistory, clearHistory } = useSearchHistory(searchType);
+  const [searchType, setSearchType] = useState<"movie" | "tv" | "person">("movie");
+  const { history, addToHistory, clearHistory } = useSearchHistory(searchType as any);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -53,9 +53,14 @@ export default function SearchScreen({ navigation }: any) {
 
 const handleSelectMedia = (item: SearchResult) => {
     addToHistory(item);
-    navigation.navigate("MediaDetail", { 
-      mediaId: item.id, 
-      mediaType: searchType 
+    if (searchType === "person") {
+      navigation.navigate("PersonProfile", { personId: item.id });
+      return;
+    }
+
+    navigation.navigate("MediaDetail", {
+      mediaId: item.id,
+      mediaType: searchType,
     });
   };
 
@@ -118,13 +123,31 @@ const renderSearchResult = ({ item }: { item: SearchResult }) => (
             TV Shows
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.typeButton,
+            searchType === "person" && styles.typeButtonActive,
+          ]}
+          onPress={() => setSearchType("person")}
+        >
+          <User size={20} color={searchType === "person" ? "#00D400" : "#9CA3AF"} />
+          <Text
+            style={[
+              styles.typeText,
+              searchType === "person" && styles.typeTextActive,
+            ]}
+          >
+            People
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.searchContainer}>
         <Search size={20} color="#6B7280" style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder={`Search for ${searchType === "movie" ? "movies" : "TV shows"}...`}
+          placeholder={`Search for ${searchType === "movie" ? "movies" : searchType === "tv" ? "TV shows" : "people"}...`}
           placeholderTextColor="#6B7280"
           value={query}
           onChangeText={setQuery} // Typing here triggers the useEffect debounce
@@ -144,7 +167,9 @@ const renderSearchResult = ({ item }: { item: SearchResult }) => (
         <View style={{ flex: 1 }}>
           {history.length > 0 && (
             <View style={styles.historyHeader}>
-              <Text style={styles.historyTitle}>Recent {searchType === 'movie' ? 'Movies' : 'Shows'}</Text>
+              <Text style={styles.historyTitle}>
+                Recent {searchType === "movie" ? "Movies" : searchType === "tv" ? "Shows" : "People"}
+              </Text>
               <TouchableOpacity onPress={clearHistory}>
                 <Text style={styles.clearText}>Clear All</Text>
               </TouchableOpacity>
@@ -158,7 +183,9 @@ const renderSearchResult = ({ item }: { item: SearchResult }) => (
             ListEmptyComponent={() => (
               <View style={styles.emptyState}>
                 <Search size={64} color="#374151" />
-                <Text style={styles.emptyText}>Find your next favorite {searchType === 'movie' ? 'film' : 'series'}</Text>
+                <Text style={styles.emptyText}>
+                  {searchType === "person" ? "Find profiles" : `Find your next favorite ${searchType === 'movie' ? 'film' : 'series'}`}
+                </Text>
               </View>
             )}
           />
@@ -219,7 +246,7 @@ const styles = StyleSheet.create({
     borderColor: "#00D400",
   },
   typeText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
     color: "#9CA3AF",
   },

@@ -19,7 +19,7 @@ const UniversalHeader: React.FC<Props> = ({ title, onBack, scrollY }) => {
   const backButtonOpacity = scrollY
     ? scrollY.interpolate({
         inputRange: [80, 220],
-        outputRange: [0.25, 1],
+        outputRange: [0.7, 1],
         extrapolate: "clamp",
       })
     : 1;
