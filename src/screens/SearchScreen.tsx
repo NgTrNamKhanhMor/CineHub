@@ -1,4 +1,3 @@
-// screens/SearchScreen.tsx
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -12,8 +11,7 @@ import {
 } from "react-native";
 import { Search, Film, Tv } from "lucide-react-native";
 import { searchForMedia } from "../service/media.service";
-import { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../types/props";
+import { useSearchHistory } from "../hooks/useSearchHistory";
 
 interface SearchResult {
   id: number;
@@ -22,17 +20,17 @@ interface SearchResult {
   posterUrl: string;
 }
 
-type Props = NativeStackScreenProps<RootStackParamList, "Search">;
-
 export default function SearchScreen({ navigation }: any) {
   const [query, setQuery] = useState("");
   const [searchType, setSearchType] = useState<"movie" | "tv">("movie");
+  const { history, addToHistory, clearHistory } = useSearchHistory(searchType);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
+      setLoading(false) 
       return;
     }
 
@@ -53,21 +51,23 @@ export default function SearchScreen({ navigation }: any) {
     return () => clearTimeout(delayDebounceFn);
   }, [query, searchType]);
 
-  const handleSelectMedia = (id: number, type: "movie" | "tv") => {
-    navigation.navigate("MediaDetail", { mediaId: id, mediaType: type });
+const handleSelectMedia = (item: SearchResult) => {
+    addToHistory(item);
+    navigation.navigate("MediaDetail", { 
+      mediaId: item.id, 
+      mediaType: searchType 
+    });
   };
 
-  const renderSearchResult = ({ item }: { item: SearchResult }) => (
+const renderSearchResult = ({ item }: { item: SearchResult }) => (
     <TouchableOpacity
       style={styles.resultCard}
-      onPress={() => handleSelectMedia(item.id, searchType)}
+      onPress={() => handleSelectMedia(item)} 
       activeOpacity={0.7}
     >
       <Image source={{ uri: item.posterUrl }} style={styles.poster} />
       <View style={styles.resultInfo}>
-        <Text style={styles.resultTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
+        <Text style={styles.resultTitle} numberOfLines={2}>{item.title}</Text>
         <Text style={styles.resultYear}>{item.year}</Text>
       </View>
     </TouchableOpacity>
@@ -140,24 +140,41 @@ export default function SearchScreen({ navigation }: any) {
       </View>
 
       {/* Results Section */}
-      {results.length > 0 ? (
+      {query.length === 0 ? (
+        <View style={{ flex: 1 }}>
+          {history.length > 0 && (
+            <View style={styles.historyHeader}>
+              <Text style={styles.historyTitle}>Recent {searchType === 'movie' ? 'Movies' : 'Shows'}</Text>
+              <TouchableOpacity onPress={clearHistory}>
+                <Text style={styles.clearText}>Clear All</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+          <FlatList
+            data={history}
+            renderItem={renderSearchResult} // We reuse the same card style
+            keyExtractor={(item) => `history-${item.id}`}
+            contentContainerStyle={styles.resultsList}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyState}>
+                <Search size={64} color="#374151" />
+                <Text style={styles.emptyText}>Find your next favorite {searchType === 'movie' ? 'film' : 'series'}</Text>
+              </View>
+            )}
+          />
+        </View>
+      ) : (
         <FlatList
           data={results}
           renderItem={renderSearchResult}
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={styles.resultsList}
+          ListEmptyComponent={() => !loading && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>No results found for "{query}"</Text>
+            </View>
+          )}
         />
-      ) : (
-        <View style={styles.emptyState}>
-          <Search size={64} color="#374151" />
-          <Text style={styles.emptyText}>
-            {loading
-              ? "Searching..."
-              : query.length > 0
-                ? "No results found"
-                : "Start typing to find something great"}
-          </Text>
-        </View>
       )}
     </View>
   );
@@ -282,5 +299,23 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginTop: 16,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    marginVertical: 12,
+  },
+  historyTitle: {
+    color: '#9CA3AF',
+    fontSize: 14,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  clearText: {
+    color: '#EF4444',
+    fontSize: 14,
   },
 });
