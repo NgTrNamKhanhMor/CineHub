@@ -121,10 +121,16 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({
                 <Text style={styles.scoreLabel}>IMDb</Text>
               </View>
               <View style={styles.scoreValueContainer}>
-                <Text style={styles.scoreValue}>
-                  {mediaData.scores.imdb.toFixed(1)}
-                </Text>
-                <Text style={styles.scoreMax}>/10</Text>
+                {mediaData.scores.imdb === 0 ? (
+                  <Text style={styles.scoreValue}>N/A</Text>
+                ) : (
+                  <>
+                    <Text style={styles.scoreValue}>
+                      {mediaData.scores.imdb.toFixed(1)}
+                    </Text>
+                    <Text style={styles.scoreMax}>/10</Text>
+                  </>
+                )}
               </View>
             </View>
 
@@ -135,10 +141,16 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = ({
                   <Text style={styles.scoreLabel}>LB</Text>
                 </View>
                 <View style={styles.scoreValueContainer}>
-                  <Text style={styles.scoreValue}>
-                    {mediaData.scores.letterboxd.toFixed(1)}
-                  </Text>
-                  <Text style={styles.scoreMax}>/5</Text>
+                  {mediaData.scores.letterboxd === 0 ? (
+                    <Text style={styles.scoreValue}>N/A</Text>
+                  ) : (
+                    <>
+                      <Text style={styles.scoreValue}>
+                        {mediaData.scores.letterboxd.toFixed(1)}
+                      </Text>
+                      <Text style={styles.scoreMax}>/5</Text>
+                    </>
+                  )}
                 </View>
               </View>
             )}
@@ -681,12 +693,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   sectionContainer: {
-    marginTop: 24,
+    marginVertical: 24,
     paddingHorizontal: 16,
   },
 
   castScroll: {
-    paddingRight: 16, // Extra space at the end of scrolling
+    paddingRight: 16,
   },
   castCard: {
     width: 100,
@@ -707,6 +719,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   characterName: {
+    width: 100,
     color: "#9CA3AF",
     fontSize: 11,
     textAlign: "center",

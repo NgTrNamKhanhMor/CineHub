@@ -41,6 +41,7 @@ export interface TMDbMovie {
   imdb_id?: string;
   backdrop_path: string;
   credits?: Credits;
+  genre_ids?: number[];
 }
 interface Credits {
   crew: Array<{
