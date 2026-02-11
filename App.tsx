@@ -8,6 +8,9 @@ import HomeScreen from "./src/screens/HomeScreen";
 import SearchScreen from "./src/screens/SearchScreen";
 import PersonProfileScreen from "./src/screens/PersonProfileScreen";
 import MediaDetailWrapper from "./src/wrapper/MediaDetailWrapper";
+import { useEffect, useState } from "react";
+import AppLoader from "./src/components/AppLoader";
+import { HomeDataProvider, useHomeData } from "./src/context/HomeDataContext";
 
 const Tab = createBottomTabNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -15,7 +18,12 @@ const SearchStack = createNativeStackNavigator();
 
 function HomeStackScreen() {
   return (
-    <HomeStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#000" } }}>
+    <HomeStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "#000" },
+      }}
+    >
       <HomeStack.Screen name="HomeBase" component={HomeScreen} />
       <HomeStack.Screen name="MediaDetail" component={MediaDetailWrapper} />
       <HomeStack.Screen name="PersonProfile" component={PersonProfileScreen} />
@@ -25,20 +33,47 @@ function HomeStackScreen() {
 
 function SearchStackScreen() {
   return (
-    <SearchStack.Navigator screenOptions={{ headerShown: false, contentStyle: { backgroundColor: "#000" } }}>
+    <SearchStack.Navigator
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: "#000" },
+      }}
+    >
       <SearchStack.Screen name="SearchBase" component={SearchScreen} />
       <SearchStack.Screen name="MediaDetail" component={MediaDetailWrapper} />
       <HomeStack.Screen name="PersonProfile" component={PersonProfileScreen} />
     </SearchStack.Navigator>
   );
 }
-
 export default function App() {
+  return (
+    <HomeDataProvider>
+      <AppContent />
+    </HomeDataProvider>
+  );
+}
+function AppContent() {
+  const [isSplashDone, setIsSplashDone] = useState(false);
+  const { movies, loadData } = useHomeData();
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  if (!isSplashDone) {
+    return (
+      <AppLoader
+        isDataReady={movies.length > 0}
+        onFinish={() => setIsSplashDone(true)}
+      />
+    );
+  }
   return (
     <NavigationContainer>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
+          animation: "fade",
           tabBarStyle: {
             backgroundColor: "#000000",
             borderTopColor: "#1A1A1A",
@@ -49,16 +84,16 @@ export default function App() {
           tabBarInactiveTintColor: "#6B7280",
         }}
       >
-        <Tab.Screen 
-          name="Home" 
-          component={HomeStackScreen} 
+        <Tab.Screen
+          name="Home"
+          component={HomeStackScreen}
           options={{
             tabBarIcon: ({ color }) => <Home size={24} color={color} />,
           }}
         />
-        <Tab.Screen 
-          name="Search" 
-          component={SearchStackScreen} 
+        <Tab.Screen
+          name="Search"
+          component={SearchStackScreen}
           options={{
             tabBarIcon: ({ color }) => <Search size={24} color={color} />,
           }}
