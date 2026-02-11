@@ -1,23 +1,7 @@
-// services/letterboxd.service.ts
-// Letterboxd Service - Web scraping for ratings (use carefully!)
-
-/**
- * WARNING: Letterboxd has no official API.
- * This service uses web scraping which:
- * 1. May violate Letterboxd's Terms of Service
- * 2. Can break if they change their HTML structure
- * 3. Should be rate-limited to avoid bans
- * 
- * RECOMMENDED ALTERNATIVES:
- * - Use a community-built API proxy
- * - Cache data heavily
- * - Only scrape on-demand with user consent
- * - Consider manual data entry for popular titles
- */
-
+import { XMLParser } from 'fast-xml-parser';import { searchMedia } from './tmdb.service'; 
 export interface LetterboxdData {
-  rating: number; // Average rating (0-5.0)
-  distribution: number[]; // Array of 10 values for 0.5-5.0 star distribution
+  rating: number;
+  distribution: number[]; 
   watchCount: number;
 }
 
@@ -223,3 +207,30 @@ export async function fetchUserLetterboxdStatus(username: string, tmdbId: number
     return { rating: null, inWatchlist: false };
   }
 }
+
+
+
+export const getLetterboxdTrending = async () => {
+  try {
+    // This is a common public endpoint that mirrors Letterboxd's "Popular this week"
+    const response = await fetch('https://letterboxd-api.vercel.app/popular');
+    const titles = await response.json(); // Returns: ["Anora", "Gladiator II", ...]
+
+    // Now, we map those titles to TMDB data so we have posters and IDs
+    if(titles.length === 0 || !Array.isArray(titles)) return [];
+    console.log(titles);
+    const moviePromises = titles.slice(0, 15).map(async (title: string) => {
+      const searchRes = await fetch(
+        `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(title)}&api_key=YOUR_TMDB_KEY`
+      );
+      const searchData = await searchRes.json();
+      return searchData.results[0]; // Take the first match
+    });
+
+    const movies = await Promise.all(moviePromises);
+    return movies.filter(m => m !== undefined);
+  } catch (error) {
+    console.error("Letterboxd Mirror Error:", error);
+    return [];
+  }
+};

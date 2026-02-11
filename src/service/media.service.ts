@@ -19,17 +19,14 @@ import {
  */
 export const fetchMovieData = async (tmdbId: number): Promise<MediaData> => {
   try {
-    console.log("Fetching movie data from TMDb...");
     const tmdbData = await getMovieDetails(tmdbId);
     const directorData = tmdbData.credits?.crew?.find(
       (person: any) => person.job === "Director",
     );
-    console.log("Fetching external IDs...");
     const externalIds = await getMovieExternalIds(tmdbId);
     const imdbId = externalIds.imdb_id;
     const castData = await getMediaCredits(tmdbId, "movie");
     // Fetch IMDb rating (from OMDb)
-    console.log("Fetching IMDb rating...");
     let imdbRating = 0;
     let imdbWeights = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     if (imdbId) {
@@ -40,11 +37,9 @@ export const fetchMovieData = async (tmdbId: number): Promise<MediaData> => {
     // Fallback to TMDb rating if OMDb fails
     if (imdbRating === 0) {
       imdbRating = tmdbData.vote_average;
-      console.log("Using TMDb rating as fallback");
     }
 
     // Fetch Letterboxd data
-    console.log("Fetching Letterboxd data...");
     let letterboxdData: LetterboxdData | null = null;
     if (imdbId) {
       letterboxdData = await getLetterboxdData(
@@ -77,7 +72,6 @@ export const fetchMovieData = async (tmdbId: number): Promise<MediaData> => {
       cast: castData,
     };
 
-    console.log("Movie data fetched successfully!");
     return mediaData;
   } catch (error) {
     console.error("Error fetching movie data:", error);
@@ -90,15 +84,12 @@ export const fetchMovieData = async (tmdbId: number): Promise<MediaData> => {
  */
 export const fetchTVShowData = async (tmdbId: number): Promise<MediaData> => {
   try {
-    console.log("Fetching TV show data from TMDb...");
     const tmdbData = await getTVShowDetails(tmdbId);
 
-    console.log("Fetching external IDs...");
     const externalIds = await getTVExternalIds(tmdbId);
     const imdbId = externalIds.imdb_id;
     const castData = await getMediaCredits(tmdbId, "tv");
     // Fetch IMDb rating
-    console.log("Fetching IMDb rating...");
     let imdbRating = 0;
     let imdbWeights = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     if (imdbId) {
@@ -109,11 +100,9 @@ export const fetchTVShowData = async (tmdbId: number): Promise<MediaData> => {
     // Fallback to TMDb rating
     if (imdbRating === 0) {
       imdbRating = tmdbData.vote_average;
-      console.log("Using TMDb rating as fallback");
     }
 
     // Fetch all episodes
-    console.log("Fetching episode data...");
     const episodes = await getAllTVEpisodes(tmdbId, tmdbData.number_of_seasons);
 
     // Transform episodes to our format
@@ -144,7 +133,6 @@ export const fetchTVShowData = async (tmdbId: number): Promise<MediaData> => {
       cast: castData,
     };
 
-    console.log("TV show data fetched successfully!");
     return mediaData;
   } catch (error) {
     console.error("Error fetching TV show data:", error);
