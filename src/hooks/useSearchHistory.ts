@@ -3,12 +3,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useState, useEffect } from "react";
 
 // Separate keys for persistence
-const KEYS = {
+const KEYS: Record<string, string> = {
   movie: "@search_history_movies",
   tv: "@search_history_tv",
+  person: "@search_history_persons",
 };
 
-export const useSearchHistory = (type: "movie" | "tv") => {
+export type SearchType = "movie" | "tv" | "person";
+
+export const useSearchHistory = (type: SearchType) => {
   const [history, setHistory] = useState<any[]>([]);
   const storageKey = KEYS[type];
   useEffect(() => {

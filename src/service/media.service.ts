@@ -145,22 +145,33 @@ export const fetchTVShowData = async (tmdbId: number): Promise<MediaData> => {
  */
 export const searchForMedia = async (
   query: string,
-  type: "movie" | "tv" = "movie",
+  type: "movie" | "tv" | "person" = "movie",
 ): Promise<
-  Array<{ id: number; title: string; year: string; posterUrl: string }>
+  Array<{ id: number; title: string; year?: string; posterUrl: string }>
 > => {
   try {
-    const results = await searchMedia(query, type);
+    const results = await searchMedia(query, type as any);
 
-    return results.map((item: any) => ({
-      id: item.id,
-      title: type === "movie" ? item.title : item.name,
-      year:
-        (type === "movie" ? item.release_date : item.first_air_date)?.split(
-          "-",
-        )[0] || "Unknown",
-      posterUrl: getPosterUrl(item.poster_path, 500),
-    }));
+    return results.map((item: any) => {
+      if (type === "person") {
+        return {
+          id: item.id,
+          title: item.name,
+          year: item.known_for_department || "",
+          posterUrl: getPosterUrl(item.profile_path, 500),
+        };
+      }
+
+      return {
+        id: item.id,
+        title: type === "movie" ? item.title : item.name,
+        year:
+          (type === "movie" ? item.release_date : item.first_air_date)?.split(
+            "-",
+          )[0] || "Unknown",
+        posterUrl: getPosterUrl(item.poster_path, 500),
+      };
+    });
   } catch (error) {
     console.error("Error searching media:", error);
     return [];
